@@ -58,10 +58,11 @@ public class Venta  {
     static final Font FUENTE = new Font("chilanka",Font.PLAIN,34);
     JButton button_ingresar;
     JTextField textfield_isbn,textfield_cantidad,textfield_rut,textfield_nombre_cliente;
-    private JComboBox<String> comboBox_principal,comboBox_Tipos;
+    private JComboBox<String> comboBox_principal,comboBox_tipos;
     String[] columnNames_libro = {"ISBN","Titulo","Nombre del Autor","Editorial","Tipo de Genero","Tipo de subgenero","Stock","Precio"};
     String[] columnNames_ventas = {"id_boleta","rut_cliente","fecha","hora","tipo_de_entrega","cantidad","precio_total"};
-    private String tipos[] = {"Titulos","Autores","Editoriales","Generos","Subgeneros"};
+    private String tipos[] = {"Titulos","Autores","Editoriales","Generos","Subgeneros","Precio"};
+    String[] tipo_precio = {"Menor que $5000","Entre $5000 y $10000","Entre $10001 y $20000","Mayor que $20000"};
     MongoCollection<Libros> collection;
     IngresosDatosVenta ingresoVenta;
     Libros libro;
@@ -108,10 +109,10 @@ private void createGui() {
         label_isbn.setFont(FUENTE);
 
         
-        comboBox_Tipos = new JComboBox<String>(tipos);
-        comboBox_Tipos.setFont(FUENTE);
-        comboBox_Tipos.setBounds(200,490, 280, 50);
-        comboBox_Tipos.addActionListener (new ActionListener () {
+        comboBox_tipos = new JComboBox<String>(tipos);
+        comboBox_tipos.setFont(FUENTE);
+        comboBox_tipos.setBounds(200,490, 280, 50);
+        comboBox_tipos.addActionListener (new ActionListener () {
           public void actionPerformed(ActionEvent e) {
               fill();
           }
@@ -142,20 +143,9 @@ private void createGui() {
                 //System.out.println(comboBox_principal.getSelectedItem().toString());
             }});
 
-
-
         panel.add(label_isbn);
-        panel.add(comboBox_Tipos);
+        panel.add(comboBox_tipos);
         panel.add(comboBox_principal);
-        // panel.add(label_cantidad);
-       // panel.add(textfield_isbn);
-       // panel.add(textfield_cantidad);
-       // panel.add(label_modalidad);
-       // panel.add(modalidad);
-       // panel.add(label_rut);
-       // panel.add(textfield_rut);
-       // panel.add(label_nombre);
-        //panel.add(textfield_nombre_cliente);
         panel.add(button_ingresar);
         panel.add(fondo);
         panel.updateUI();
@@ -164,22 +154,27 @@ private void createGui() {
 
 public void fill(){
 
-if(comboBox_Tipos.getSelectedIndex()==0){
+if(comboBox_tipos.getSelectedIndex()==0){
   comboBox_principal.setModel(new DefaultComboBoxModel<String>(getandsortValues("Titulo")));
 }
-if(comboBox_Tipos.getSelectedIndex()==1){
+if(comboBox_tipos.getSelectedIndex()==1){
   comboBox_principal.setModel(new DefaultComboBoxModel<String>(getandsortValues("Autor")));
 }
-if(comboBox_Tipos.getSelectedIndex()==2){
+if(comboBox_tipos.getSelectedIndex()==2){
   comboBox_principal.setModel(new DefaultComboBoxModel<String>(getandsortValues("Editorial")));
 }
-if(comboBox_Tipos.getSelectedIndex()==3){
+if(comboBox_tipos.getSelectedIndex()==3){
   comboBox_principal.setModel(new DefaultComboBoxModel<String>(getandsortValues("Genero")));
 }
-if(comboBox_Tipos.getSelectedIndex()==4){
+if(comboBox_tipos.getSelectedIndex()==4){
   comboBox_principal.setModel(new DefaultComboBoxModel<String>(getandsortValues("Subgenero")));
 }
 
+if(comboBox_tipos.getSelectedIndex()==5){
+  
+  comboBox_principal.setModel(new DefaultComboBoxModel<String>(tipo_precio));
+  
+}
 
 
 }
@@ -202,7 +197,7 @@ private void getValues(){
 
   conexion_busqueda = new Conexion("Libros");
 
-  if(comboBox_Tipos.getSelectedIndex()==0){
+  if(comboBox_tipos.getSelectedIndex()==0){
 
     libro = conexion_busqueda.collection_Libros.find(eq("titulo",comboBox_principal.getSelectedItem())).first(); 
     Object[][] datos = {{libro.getIsbn(),libro.getTitulo().toString(),libro.getNombre_del_autor(),libro.getEditorial() ,libro.getTipo_genero(),libro.getTipo_subgenero(),libro.getStock() ,libro.getPrecio()}}; 
@@ -215,7 +210,7 @@ private void getValues(){
   
   }
 
-  if(comboBox_Tipos.getSelectedIndex()==1){
+  if(comboBox_tipos.getSelectedIndex()==1){
   
     tableModel = new Tabla(columnNames_libro,listToObject(getDataPerValue("nombre_del_autor")),0,540,1920,540);
     ventanaTabla= new VentanaTabla("Busqueda por autor",tableModel);
@@ -225,7 +220,7 @@ private void getValues(){
    
   }
 
-  if(comboBox_Tipos.getSelectedIndex()==2){
+  if(comboBox_tipos.getSelectedIndex()==2){
   
     tableModel = new Tabla(columnNames_libro,listToObject(getDataPerValue("editorial")),0,540,1920,540);
     ventanaTabla= new VentanaTabla("Busqueda por editorial",tableModel);
@@ -235,7 +230,7 @@ private void getValues(){
      
   }
 
-  if(comboBox_Tipos.getSelectedIndex()==3){
+  if(comboBox_tipos.getSelectedIndex()==3){
   
     tableModel = new Tabla(columnNames_libro,listToObject(getDataPerValue("tipo_genero")),0,540,1920,540);
     ventanaTabla= new VentanaTabla("Busqueda por generos",tableModel);
@@ -245,7 +240,7 @@ private void getValues(){
 
   }
 
-  if(comboBox_Tipos.getSelectedIndex()==4){
+  if(comboBox_tipos.getSelectedIndex()==4){
    
     tableModel = new Tabla(columnNames_libro,listToObject(getDataPerValue("tipo_subgenero")),0,540,1920,540);
     ventanaTabla =  new VentanaTabla("Busqueda por subgenero",tableModel);
@@ -254,27 +249,36 @@ private void getValues(){
 
   }
 
+  if(comboBox_tipos.getSelectedIndex()==5){
+   
+    tableModel = new Tabla(columnNames_libro,listToObject(getdataPrecio()),0,540,1920,540);
+    ventanaTabla =  new VentanaTabla("Busqueda por precio",tableModel);
+    ventanaTabla.setVisible(true);
+    ventaTabla();
 
- 
-   // if((textfield_isbn.getText().length()!=0 && textfield_isbn.getText().length()==13) && textfield_cantidad.getText().length()!=0  && textfield_nombre_cliente.getText().length()!=0 && textfield_rut.getText().length()!= 0){
-     //   System.out.println("entro");
+  }
+
+
+ /* 
+   if((textfield_isbn.getText().length()!=0 && textfield_isbn.getText().length()==13) && textfield_cantidad.getText().length()!=0  && textfield_nombre_cliente.getText().length()!=0 && textfield_rut.getText().length()!= 0){
+     System.out.println("entro");
        
 
 
-      // Libros libro_ejemplo = new Libros().setIsbn(0L).setTitulo("ejemplo").setVendidos(singletonList(new Vendidos().setId_boleta(0)));
+      Libros libro_ejemplo = new Libros().setIsbn(0L).setTitulo("ejemplo").setVendidos(singletonList(new Vendidos().setId_boleta(0)));
         
     
         
-    //    collection.insertOne(libro_ejemplo);
-      //  Libros libro = collection.find(eq("isbn", 9509970667528L)).first();
-       // System.out.println("Libro encontrado:\t" + libro);
+        collection.insertOne(libro_ejemplo);
+      Libros libro = collection.find(eq("isbn", 9509970667528L)).first();
+     System.out.println("Libro encontrado:\t" + libro);
     
         
-         // update this grade: adding an exam grade
-      //  List<Vendidos> vendidos = new ArrayList<>(libro.getVendidos());
-       // System.out.println(vendidos.get(0).getHora());  Par buscar en vendidos
-        //vendidos.add(new Vendidos().setId_boleta(00000).setRut_cliente(0000));
-        
+         update this grade: adding an exam grade
+       List<Vendidos> vendidos = new ArrayList<>(libro.getVendidos());
+       System.out.println(vendidos.get(0).getHora());  Par buscar en vendidos
+      /vendidos.add(new Vendidos().setId_boleta(00000).setRut_cliente(0000));
+        */
   /*      try {
             
             Libros libro = collection.find(eq("isbn",Long.parseLong(textfield_isbn.getText().toString()))).first();  
@@ -513,10 +517,48 @@ public List<Libros> getDataPerValue(String value){
 
 }
 
+public List<Libros> getdataPrecio(){
+
+  List<Libros> list_objects = new ArrayList<>();
+  MongoCursor<Libros> cursor = conexion_busqueda.collection_Libros.find().iterator();
+  while(cursor.hasNext()){
+      Libros libro = cursor.next();
+      if(libro != null){
+          if(comboBox_principal.getSelectedIndex()==0){
+            if(libro.getPrecio()<5000){
+              list_objects.add(libro);
+            }
+          }
+          if(comboBox_principal.getSelectedIndex()==1){
+            if(libro.getPrecio()>=5000 && libro.getPrecio()<=10000){
+              list_objects.add(libro);
+            }
+          }
+          if(comboBox_principal.getSelectedIndex()==2){
+            if(libro.getPrecio()>=10001 && libro.getPrecio()<=20000){
+              list_objects.add(libro);
+            }
+          }
+          if(comboBox_principal.getSelectedIndex()==3){
+            if(libro.getPrecio()>20000){
+              list_objects.add(libro);
+            }
+          }  
+      }
+  } 
+
+  return list_objects;
+}
+
 public String setHora(int value) {
-  
+
   String stringValue = String.valueOf(value);
-  stringValue = stringValue.substring(0, 2)+":"+stringValue.substring(2, 4);
+  if(stringValue.length()==3){
+    stringValue = "0"+stringValue.substring(0, 1)+":"+stringValue.substring(1, 3);
+  }else{
+    stringValue = stringValue.substring(0, 2)+":"+stringValue.substring(2, 4);
+  }
+  
   return stringValue;
 
 }

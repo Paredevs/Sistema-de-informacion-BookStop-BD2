@@ -71,16 +71,29 @@ public class Conexion {
     
     if(value.equals("Titulo")){
         return ArrayList_values;
-    }else{
+    }else{  //Encargado de eliminar repetidos
         Set<String> set = new HashSet<>(ArrayList_values);
-        ArrayList_values.clear();
+        ArrayList_values.clear();          
         ArrayList_values.addAll(set);
         return ArrayList_values;
     }
     
 }
     
-   
+public ArrayList<String> getintegerValues (String value) {
+    
+    ArrayList<String> ArrayList_values = new ArrayList<>();
+    MongoCursor<Libros> cursor = collection_Libros.find().iterator();
+    while(cursor.hasNext()){
+        Libros libro = cursor.next();
+        if(libro != null){
+            ArrayList_values.add(String.valueOf(libro.getPrecio()));
+        }
+    } 
+
+    return ArrayList_values;
+
+   }
 
     
     
