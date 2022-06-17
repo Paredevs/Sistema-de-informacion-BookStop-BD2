@@ -33,17 +33,26 @@ public class Conexion {
                                                             .build();
     private MongoClient mongoClient = MongoClients.create(clientSettings);
     public MongoDatabase database = mongoClient.getDatabase("Bookstop");
-    MongoCollection<Libros> collection;
+    MongoCollection<Libros> collection_Libros;
+    MongoCollection<Clientes> collection_Clientes;
 
     public Conexion(String colecction){
         
-        collection = database.getCollection(colecction,Libros.class);
+        if(colecction.equals("Libros")){
+            collection_Libros = database.getCollection(colecction,Libros.class);
+           
+        }
+        if(colecction.equals("Clientes")){
+            collection_Clientes =  database.getCollection("Clientes",Clientes.class);
+        }
+            
 
     }
 
     public ArrayList<String> getstringValues(String value){
+
         ArrayList<String> ArrayList_values = new ArrayList<>();
-        MongoCursor<Libros> cursor = collection.find().iterator();
+        MongoCursor<Libros> cursor = collection_Libros.find().iterator();
         while(cursor.hasNext()){
         Libros libro = cursor.next();
         if(libro != null){
@@ -71,8 +80,8 @@ public class Conexion {
     
 }
     
-    public MongoCollection<Libros> getCollection() {
-        return collection;
-    }
+   
+
+    
     
 }

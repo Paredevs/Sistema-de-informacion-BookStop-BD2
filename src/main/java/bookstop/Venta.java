@@ -202,7 +202,7 @@ private void getValues(){
 
   if(comboBox_Tipos.getSelectedIndex()==0){
 
-    libro = conexion_busqueda.getCollection().find(eq("titulo",comboBox_principal.getSelectedItem())).first(); 
+    libro = conexion_busqueda.collection_Libros.find(eq("titulo",comboBox_principal.getSelectedItem())).first(); 
     Object[][] datos = {{libro.getIsbn(),libro.getTitulo().toString(),libro.getNombre_del_autor(),libro.getEditorial() ,libro.getTipo_genero(),libro.getTipo_subgenero(),libro.getStock() ,libro.getPrecio()}}; 
     tableModel = new Tabla(columnNames_libro,datos,0,540,1920,540);
     JFrame vendidos_frame = new JFrame(libro.getTitulo()+" - BookStop");
@@ -352,10 +352,10 @@ public void ventaTabla(){
               @Override
               public void actionPerformed(ActionEvent arg0) {
 
-                libro = conexion_busqueda.getCollection().find(eq("isbn", ISBN)).first();
+                libro = conexion_busqueda.collection_Libros.find(eq("isbn", ISBN)).first();
                 if(libro.getVendidos()!=null){
 
-                    libro = conexion_busqueda.getCollection().find(eq("isbn", ISBN)).first();
+                    libro = conexion_busqueda.collection_Libros.find(eq("isbn", ISBN)).first();
                     List<Vendidos> vendidos = new ArrayList<>(libro.getVendidos());
                     Object[][] table = new Object[vendidos.size()][7];
                     for(int x = 0; x < vendidos.size(); x++){
@@ -393,64 +393,70 @@ public void ventaTabla(){
                     String[] values = ingresoVenta.getValues();
                     if(values[0].length()>0 && values[2].length()>0){
 
-
-                      int Rut = Integer.parseInt(values[0]);
+                      int rut = Integer.parseInt(values[0]);
                       int Cantidad = Integer.parseInt(values[2]);
                       int nuevoStock = libro.getStock()-Integer.parseInt(values[2]);
-                     int boleta = (int) Math.floor(Math.random()*(9999-1+1)+1);  
-                     // int boleta = compruebaBoleta();
-                      System.out.println(boleta);
                       String modalidad = values[1];
+                      int boleta = (int) Math.floor(Math.random()*(999999-100000+1)+100000);  
 
-                        if(libro.getVendidos()!=null){
+                      while(compruebaBoleta(boleta)){ //Comprueba de que el id_de_boleta no exista
+
+                        boleta = (int) Math.floor(Math.random()*(999999-1+1)+1);  
+                    
+                      }
+
+                      if(compruebaRut(rut)){ //Si el rut existe se agrega la boleta
+
+                        Conexion conexion = new Conexion("Clientes");
+                        DBObject listItem = new BasicDBObject("boletas", new BasicDBObject("id_boleta",boleta).append("fecha",getFecha()).append("hora", getHora()).append("tipo_de_entrega", modalidad).append("cantidad", Cantidad).append("precio_total", libro.getPrecio()*Cantidad));
+                        conexion.collection_Clientes.updateOne(eq("rut",rut), new Document().append("$push", listItem)); 
+                    
+                      }
+
+                      if(libro.getVendidos()!=null){
 
                            
 
-                            conexion_busqueda.getCollection().updateOne(Filters.eq("isbn",ISBN), Updates.set("stock",nuevoStock));
-                            DBObject listItem = new BasicDBObject("vendidos", new BasicDBObject("id_boleta",boleta).append("rut_cliente",Rut).append("fecha",getFecha()).append("hora", getHora()).append("tipo_de_entrega", modalidad).append("cantidad", Cantidad).append("precio_total", libro.getPrecio()*Cantidad));
-                           conexion_busqueda.getCollection().updateOne(eq("isbn",ISBN), new Document().append("$push", listItem)); 
+                          conexion_busqueda.collection_Libros.updateOne(Filters.eq("isbn",ISBN), Updates.set("stock",nuevoStock));
+                          DBObject listItem = new BasicDBObject("vendidos", new BasicDBObject("id_boleta",boleta).append("rut_cliente",rut).append("fecha",getFecha()).append("hora", getHora()).append("tipo_de_entrega", modalidad).append("cantidad", Cantidad).append("precio_total", libro.getPrecio()*Cantidad));
+                          conexion_busqueda.collection_Libros.updateOne(eq("isbn",ISBN), new Document().append("$push", listItem)); 
                           
-                            JFrame emergente = new JFrame();
-                            JOptionPane.showMessageDialog(emergente, libro.getTitulo()+" Vendido");
+                          JFrame emergente = new JFrame();
+                          JOptionPane.showMessageDialog(emergente, libro.getTitulo()+" Vendido");
                           
-                        }else{
+                      }else{
 
                           
-                            Libros libro_nuevo = new Libros();
-                            libro_nuevo.setIsbn(ISBN);
-                            libro_nuevo.setTitulo(libro.getTitulo());
-                            libro_nuevo.setNombre_del_autor(libro.getNombre_del_autor());
-                            libro_nuevo.setEditorial(libro.getEditorial());
-                            libro_nuevo.setTipo_genero(libro.getTipo_genero());
-                            libro_nuevo.setTipo_subgenero(libro.getTipo_subgenero());
-                            libro_nuevo.setStock(nuevoStock);
-                            libro_nuevo.setPrecio(libro.getPrecio());
-                          
+                          Libros libro_nuevo = new Libros();
+                          libro_nuevo.setIsbn(ISBN);
+                          libro_nuevo.setTitulo(libro.getTitulo());
+                          libro_nuevo.setNombre_del_autor(libro.getNombre_del_autor());
+                          libro_nuevo.setEditorial(libro.getEditorial());
+                          libro_nuevo.setTipo_genero(libro.getTipo_genero());
+                          libro_nuevo.setTipo_subgenero(libro.getTipo_subgenero());
+                          libro_nuevo.setStock(nuevoStock);
+                          libro_nuevo.setPrecio(libro.getPrecio());
                         
-                            List<Vendidos> lista_vendidos = new ArrayList<Vendidos>();
-                            Vendidos nueva_venta = new Vendidos();
+                      
+                          List<Vendidos> lista_vendidos = new ArrayList<Vendidos>();
+                          Vendidos nueva_venta = new Vendidos();
+                  
+                          nueva_venta.setId_boleta(boleta);
+                          nueva_venta.setRut_cliente(rut);
+                          nueva_venta.setFecha(getFecha());
+                          nueva_venta.setHora(getHora());
+                          nueva_venta.setTipo_de_entrega(modalidad);
+                          nueva_venta.setCantidad(Cantidad);
+                          nueva_venta.setPrecio_total(libro.getPrecio()*Cantidad);
+                          lista_vendidos.add(nueva_venta);
+                          libro_nuevo.setVendidos(lista_vendidos);
+                      
+                          //save the modified object
+                          conexion_busqueda.collection_Libros.replaceOne(eq("isbn", ISBN), libro_nuevo);
+                          JFrame emergente = new JFrame();
+                          JOptionPane.showMessageDialog(emergente, libro.getTitulo()+" Vendido");
 
-                    
-
-                            nueva_venta.setId_boleta(boleta);
-                            nueva_venta.setRut_cliente(Rut);
-                            nueva_venta.setFecha(getFecha());
-                            nueva_venta.setHora(getHora());
-                            nueva_venta.setTipo_de_entrega(modalidad);
-                            nueva_venta.setCantidad(Cantidad);
-                            nueva_venta.setPrecio_total(libro.getPrecio()*Cantidad);
-
-
-                            lista_vendidos.add(nueva_venta);
-
-                            libro_nuevo.setVendidos(lista_vendidos);
-                        
-                            //save the modified object
-                           conexion_busqueda.getCollection().replaceOne(eq("isbn", ISBN), libro_nuevo);
-                            JFrame emergente = new JFrame();
-                            JOptionPane.showMessageDialog(emergente, libro.getTitulo()+" Vendido");
-
-                        }
+                      }
 
                     }
                       
@@ -493,9 +499,10 @@ public Object[][] listToObject(List<Libros> data_object_list){
 public List<Libros> getDataPerValue(String value){
 
   List<Libros> list_objects = new ArrayList<>();
-  FindIterable<Libros> iterable = conexion_busqueda.getCollection().find(eq(value, comboBox_principal.getSelectedItem()));
+  FindIterable<Libros> iterable = conexion_busqueda.collection_Libros.find(eq(value, comboBox_principal.getSelectedItem()));
   MongoCursor<Libros> cursor = iterable.iterator();
   while (cursor.hasNext()) {
+    
     list_objects.add(cursor.next());
                    
    }  
@@ -535,15 +542,52 @@ public int getFecha(){
     return fecha;
 }
 
-public int compruebaBoleta(){
+public boolean compruebaBoleta(int numero_boleta){
 
   Conexion conexion = new Conexion("Clientes");
+  
+  MongoCursor<Clientes> cursor = conexion.collection_Clientes.find().iterator();
+    while(cursor.hasNext()){
+        Clientes document = (Clientes)cursor.next();
+        if(document != null){
+            if(document.getBoletas()!=null){
 
-  Cliente cliente =new Cliente();
- // cliente = conexion.getCollection().find(eq("titulo",comboBox_principal.getSelectedItem())).first(); 
+                List<Boletas> boletas = new ArrayList<>(document.getBoletas());
+                Object[][] table = new Object[boletas.size()][1];
+                for(int x = 0; x < boletas.size(); x++){
+                  
+                    Boletas currentObject = boletas.get(x);
+                  // table[x][0] = currentObject.getId_boleta();
+                  if(currentObject.getId_boleta()==numero_boleta){
+                    return true;
+                  }
+                
+                }
+          }
+        }
+    }
 
 
+  
+  return false;
+}
 
-  return 0;
+public boolean compruebaRut(int rut){
+
+  
+  Conexion conexion = new Conexion("Clientes");
+  
+  MongoCursor<Clientes> cursor = conexion.collection_Clientes.find().iterator();
+    while(cursor.hasNext()){
+        Clientes document = (Clientes)cursor.next();
+        if(document != null){
+            if(document.getRut()==rut){
+                return true;
+            }
+                
+        }
+    }
+  
+  return false;
 }
 }

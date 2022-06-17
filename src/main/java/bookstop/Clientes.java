@@ -2,7 +2,7 @@ package bookstop;
 
 import java.util.List;
 
-public class Cliente {
+public class Clientes {
 
     int rut;
     String nombre;
