@@ -1,9 +1,22 @@
 package bookstop;
 
 
+import static com.mongodb.client.model.Filters.eq;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -14,17 +27,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import java.awt.Image;
-import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import static com.mongodb.client.model.Filters.eq;
-
 
 import org.bson.Document;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
@@ -91,7 +93,7 @@ private void createGui() {
 
         JLabel fondo = new JLabel();
         
-        ImageIcon imageIcon = new ImageIcon("/home/rodrigo/Desktop/Universidad/2022/Primer semestre/Base de Datos II/Taller 2/app/app/images.jpeg"); // load the image to a imageIcon
+        ImageIcon imageIcon = new ImageIcon("/home/rodrigo/Desktop/Universidad/2022/Primer semestre/Base de Datos II/Taller 2/app/app/imagenes/images.jpeg"); // load the image to a imageIcon
         Image image = imageIcon.getImage(); // transform it 
         Image newimg = image.getScaledInstance(1920, 1080,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
         imageIcon = new ImageIcon(newimg);  // transform it back
