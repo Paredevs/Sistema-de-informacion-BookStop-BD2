@@ -27,6 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 
 import org.bson.Document;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
@@ -40,13 +41,12 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
 
-
-
 public class Venta  {
    
     final Dimension SIZE = new Dimension(1920,1080);
     JFrame window;
     JFrame confirmacion_venta;
+    JFrame crear_usuario;
     JPanel panel;
 
     Long ISBN;
@@ -57,7 +57,6 @@ public class Venta  {
     Conexion conexion_busqueda;
     static final Font FUENTE = new Font("chilanka",Font.PLAIN,34);
     JButton button_ingresar;
-    JTextField textfield_isbn,textfield_cantidad,textfield_rut,textfield_nombre_cliente;
     private JComboBox<String> comboBox_principal,comboBox_tipos;
     String[] columnNames_libro = {"ISBN","Titulo","Nombre del Autor","Editorial","Tipo de Genero","Tipo de subgenero","Stock","Precio"};
     String[] columnNames_ventas = {"id_boleta","rut_cliente","fecha","hora","tipo_de_entrega","cantidad","precio_total"};
@@ -131,7 +130,7 @@ private void createGui() {
        
         
 
-        button_ingresar = new JButton("Ingresar");
+        button_ingresar = new JButton("Buscar");
         button_ingresar.setBounds(1500,490,230,50);
         button_ingresar.setFont(FUENTE);
 
@@ -397,13 +396,43 @@ public void ventaTabla(){
                   public void actionPerformed(ActionEvent arg0) {
                     
                     String[] values = ingresoVenta.getValues();
-                    if(values[0].length()>0 && values[2].length()>0){
+                    if(values[0].length()>0 && values[2].length()>0  && values[1].length()>0  && values[3].length()>0){
 
-                      int rut = Integer.parseInt(values[0]);
-                      int Cantidad = Integer.parseInt(values[2]);
-                      int nuevoStock = libro.getStock()-Integer.parseInt(values[2]);
-                      String modalidad = values[1];
+                      String nombre_cliente = values[0];
+                      int numero_cliente = Integer.parseInt(values[1]);
+                      int rut = Integer.parseInt(values[2]);
+                      int cantidad = Integer.parseInt(values[4]);
+                      int nuevoStock = libro.getStock()-cantidad;
+                      String modalidad = values[3];
                       int boleta = (int) Math.floor(Math.random()*(999999-100000+1)+100000);  
+                      int precio_total = libro.getPrecio()*cantidad;
+    
+                      if(libro.getStock()==0){
+
+                        JFrame no_stock = new JFrame();
+                        JOptionPane.showMessageDialog(no_stock, "NO HAY STOCK DEL LIBRO: "+libro.getTitulo());
+                        return;
+
+                      }else{
+
+            
+                      
+                        if(nuevoStock<0){
+                        
+                          int dialogButton = JOptionPane.showConfirmDialog (null, "NO HAY SUFICIENTE STOCK\nDesea comprar los "+libro.getStock()+" restantes?","Advertencia",JOptionPane.YES_NO_OPTION);
+  
+                          if(dialogButton == JOptionPane.NO_OPTION) {
+                            return;
+                          }else{
+                             nuevoStock = 0;
+                             cantidad=cantidad-libro.getStock();
+                          }
+  
+                        
+                        }
+                        
+                      
+                      
 
                       while(compruebaBoleta(boleta)){ //Comprueba de que el id_de_boleta no exista
 
@@ -414,23 +443,61 @@ public void ventaTabla(){
                       if(compruebaRut(rut)){ //Si el rut existe se agrega la boleta
 
                         Conexion conexion = new Conexion("Clientes");
-                        DBObject listItem = new BasicDBObject("boletas", new BasicDBObject("id_boleta",boleta).append("fecha",getFecha()).append("hora", getHora()).append("tipo_de_entrega", modalidad).append("cantidad", Cantidad).append("precio_total", libro.getPrecio()*Cantidad));
-                        conexion.collection_Clientes.updateOne(eq("rut",rut), new Document().append("$push", listItem)); 
+                        DBObject listItem = new BasicDBObject("boletas", new BasicDBObject("id_boleta",boleta).append("fecha",getFecha()).append("hora", getHora()).append("tipo_de_entrega", modalidad).append("cantidad", cantidad).append("precio_total", precio_total));
+                        conexion.collection_Clientes.updateOne(eq("rut",rut), new Document().append("$push", listItem)); //Se encarga de añadir la boleta a el rut si es que existe
+                    
+                      }else{//Si no, se crea un usuario
+
+                            Conexion conexion_clientes = new Conexion("Clientes");
+
+                            Clientes cliente_nuevo = new Clientes();
+                            
+
+                          
+                            List<Boletas> lista_boletas_nuevo_cliente = new ArrayList<Boletas>();
+                            Boletas boleta_cliente_nuevo = new Boletas();
+                            boleta_cliente_nuevo.setId_boleta(boleta);
+                            boleta_cliente_nuevo.setFecha(getFecha());
+                            boleta_cliente_nuevo.setHora(getHora());
+                            boleta_cliente_nuevo.setTipo_de_entrega(modalidad);
+                            boleta_cliente_nuevo.setCantidad(cantidad);
+                            boleta_cliente_nuevo.setPrecio_total(precio_total);
+
+                            lista_boletas_nuevo_cliente.add(boleta_cliente_nuevo);
+
+                            cliente_nuevo.setBoletas(lista_boletas_nuevo_cliente);
+
+                            cliente_nuevo.setRut(rut);
+                            cliente_nuevo.setNombre(nombre_cliente);
+                            cliente_nuevo.setNumero(numero_cliente);
+                            if(modalidad.equals("Presencial")){
+                              cliente_nuevo.setDireccion("Av. BookStop");
+                            }else{
+                              cliente_nuevo.setDireccion("Universidad de La Serena");
+                            }
+
+                            conexion_clientes.collection_Clientes.insertOne(cliente_nuevo);
+
+                            JFrame nuevo_usuario = new JFrame();
+                            JOptionPane.showMessageDialog(nuevo_usuario, "Se ha añadido nuevo cliente");
+
+                        
+                        
+                        
                     
                       }
 
                       if(libro.getVendidos()!=null){
 
                            
-
                           conexion_busqueda.collection_Libros.updateOne(Filters.eq("isbn",ISBN), Updates.set("stock",nuevoStock));
-                          DBObject listItem = new BasicDBObject("vendidos", new BasicDBObject("id_boleta",boleta).append("rut_cliente",rut).append("fecha",getFecha()).append("hora", getHora()).append("tipo_de_entrega", modalidad).append("cantidad", Cantidad).append("precio_total", libro.getPrecio()*Cantidad));
-                          conexion_busqueda.collection_Libros.updateOne(eq("isbn",ISBN), new Document().append("$push", listItem)); 
+                          DBObject listItem = new BasicDBObject("vendidos", new BasicDBObject("id_boleta",boleta).append("rut_cliente",rut).append("fecha",getFecha()).append("hora", getHora()).append("tipo_de_entrega", modalidad).append("cantidad", cantidad).append("precio_total", libro.getPrecio()*cantidad));
+                          conexion_busqueda.collection_Libros.updateOne(eq("isbn",ISBN), new Document().append("$push", listItem)); //Se añade una venta al libro
                           
                           JFrame emergente = new JFrame();
                           JOptionPane.showMessageDialog(emergente, libro.getTitulo()+" Vendido");
                           
-                      }else{
+                      }else{ //si el libro no tiene ventas, creamos un nuevo libro, traspasamos los atributos y añadimos su primera venta
 
                           
                           Libros libro_nuevo = new Libros();
@@ -452,21 +519,23 @@ public void ventaTabla(){
                           nueva_venta.setFecha(getFecha());
                           nueva_venta.setHora(getHora());
                           nueva_venta.setTipo_de_entrega(modalidad);
-                          nueva_venta.setCantidad(Cantidad);
-                          nueva_venta.setPrecio_total(libro.getPrecio()*Cantidad);
+                          nueva_venta.setCantidad(cantidad);
+                          nueva_venta.setPrecio_total(libro.getPrecio()*cantidad);
                           lista_vendidos.add(nueva_venta);
                           libro_nuevo.setVendidos(lista_vendidos);
                       
                           //save the modified object
-                          conexion_busqueda.collection_Libros.replaceOne(eq("isbn", ISBN), libro_nuevo);
+                          conexion_busqueda.collection_Libros.replaceOne(eq("isbn", ISBN), libro_nuevo); //Se crea el arreglo de vendidos y se añade la venta
                           JFrame emergente = new JFrame();
                           JOptionPane.showMessageDialog(emergente, libro.getTitulo()+" Vendido");
 
                       }
 
-                    }
+                      }
                       
-                  }});
+                  }
+                
+                }});
 
             } catch (IndexOutOfBoundsException a) {
 
@@ -597,12 +666,11 @@ public boolean compruebaBoleta(int numero_boleta){
             if(document.getBoletas()!=null){
 
                 List<Boletas> boletas = new ArrayList<>(document.getBoletas());
-                Object[][] table = new Object[boletas.size()][1];
                 for(int x = 0; x < boletas.size(); x++){
                   
-                    Boletas currentObject = boletas.get(x);
+                    Boletas boleta_actual = boletas.get(x);
                   // table[x][0] = currentObject.getId_boleta();
-                  if(currentObject.getId_boleta()==numero_boleta){
+                  if(boleta_actual.getId_boleta()==numero_boleta){
                     return true;
                   }
                 
