@@ -26,8 +26,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
 
 import org.bson.Document;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
@@ -59,7 +57,7 @@ public class Venta  {
     JButton button_ingresar;
     private JComboBox<String> comboBox_principal,comboBox_tipos;
     String[] columnNames_libro = {"ISBN","Titulo","Nombre del Autor","Editorial","Tipo de Genero","Tipo de subgenero","Stock","Precio"};
-    String[] columnNames_ventas = {"id_boleta","rut_cliente","fecha","hora","tipo_de_entrega","cantidad","precio_total"};
+    String[] columnNames_ventas = {"ID boleta","RUT cliente","Fecha","Hora","Tipo de entrega","Cantidad","Precio total"};
     private String tipos[] = {"Titulos","Autores","Editoriales","Generos","Subgeneros","Precio"};
     String[] tipo_precio = {"Menor que $5000","Entre $5000 y $10000","Entre $10001 y $20000","Mayor que $20000"};
     MongoCollection<Libros> collection;
@@ -69,7 +67,6 @@ public class Venta  {
     
     public Venta(){
  
-        setFecha(120422);
         createWindow();
         createGui();
         window.add(panel);
@@ -349,8 +346,9 @@ public void ventaTabla(){
 
             try {
 
-              ISBN=Long.parseLong(tableModel.table.getValueAt(tableModel.table.getSelectedRow(), 0).toString());  
-              //System.out.println("ISBN: "+ISBN);
+              ISBN=Long.parseLong(tableModel.table.getValueAt(tableModel.table.getSelectedRow(), 0).toString()); 
+              libro = conexion_busqueda.collection_Libros.find(eq("isbn", ISBN)).first(); 
+              System.out.println("ISBN: "+ISBN);
               ingresoVenta = new IngresosDatosVenta();
               ingresoVenta.execute(tableModel.table.getValueAt(tableModel.table.getSelectedRow(), 1).toString());
               ingresoVenta.button_ventasActuales.addActionListener(new ActionListener(){
@@ -635,8 +633,14 @@ public String setHora(int value) {
 public String setFecha(int value){
 
   String stringValue = String.valueOf(value);
-  stringValue = stringValue.substring(0, 2)+"/"+stringValue.substring(2, 4)+"/"+stringValue.substring(4, 6);
-  return stringValue;
+    if(stringValue.length()==5){
+        
+        stringValue = "0"+stringValue.substring(0, 1)+"/"+stringValue.substring(1, 3)+"/"+stringValue.substring(3, 5);
+        
+    }else{
+        stringValue = stringValue.substring(0, 2)+"/"+stringValue.substring(2, 4)+"/"+stringValue.substring(4, 6);
+    }
+    return stringValue;
 }
 
 public int getHora() {

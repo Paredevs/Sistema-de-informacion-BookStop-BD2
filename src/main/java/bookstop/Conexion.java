@@ -93,8 +93,30 @@ public ArrayList<String> getintegerValues (String value) {
 
     return ArrayList_values;
 
-   }
+    }
 
+    public ArrayList<String> getClienteValues(String value){
+
+        ArrayList<String> ArrayList_values = new ArrayList<>();
+        MongoCursor<Clientes> cursor = collection_Clientes.find().iterator();
+        while(cursor.hasNext()){
+        Clientes cliente = cursor.next();
+        if(cliente != null){
+            if(value.equals("Nombre"))
+                ArrayList_values.add(cliente.getNombre());
+            if(value.equals("RUT"))
+                ArrayList_values.add(String.valueOf(cliente.getRut()));
+            /*if(value.equals("ID boleta"))
+                ArrayList_values.add(String.valueOf(cliente.get()));*/
+           /*  if(value.equals("Fecha"))
+                ArrayList_values.add(String.valueOf(cliente.getRut()));*/
+        }
+    } 
     
+        return ArrayList_values;
+    
+}
+
+
     
 }

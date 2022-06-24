@@ -48,19 +48,19 @@ public class Menu {
     private void createGui() {
 
         JButton button_sale = new JButton("Venta");
-        JButton button_pedido = new JButton("Pedido");  // duki
+        JButton button_boletas = new JButton("Boletas");  // duki
         JButton button_borrado = new JButton("Borrado");
 
         button_sale.setBounds(240,100,130,40);
-        button_pedido.setBounds(240,200,130,40);
+        button_boletas.setBounds(240,200,130,40);
         button_borrado.setBounds(240,300,130,40);
 
         button_sale.setFont(new Font("Chilanka", Font.PLAIN,25));
-        button_pedido.setFont(new Font("Chilanka", Font.PLAIN,25));
+        button_boletas.setFont(new Font("Chilanka", Font.PLAIN,25));
         button_borrado.setFont(new Font("Chilanka", Font.PLAIN,25));
         
         panel.add(button_sale);
-        panel.add(button_pedido);
+        panel.add(button_boletas);
         panel.add(button_borrado);
         panel.updateUI();
 
@@ -73,7 +73,13 @@ public class Menu {
             }});
 
           
-
+        button_boletas.addActionListener(new ActionListener(){
+        
+                @Override
+                public void actionPerformed(ActionEvent arg0) {
+                    BusquedaCliente busqueda_window = new BusquedaCliente();
+                    
+                }});
 
     }
     private void functionButtons() {
