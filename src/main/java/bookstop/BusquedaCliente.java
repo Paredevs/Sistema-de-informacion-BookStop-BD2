@@ -1,6 +1,5 @@
 package bookstop;
 
-import static com.mongodb.client.model.Filters.eq;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -18,7 +17,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
-import com.mongodb.client.FindIterable;
+
 
 import com.mongodb.client.MongoCursor;
 
@@ -454,32 +453,7 @@ private String[] getIntegerandSort(String value) {
 
   }
 
-  public List<Clientes> getDataPerValue(String value){
-
-    String number = comboBox_principal.getSelectedItem().toString().replaceAll("[^0-9]", "");
-    System.out.println(Integer.valueOf(number));
-    List<Clientes> list_clientes = new ArrayList<>();
-    FindIterable<Clientes> iterable = conexion_busqueda.collection_Clientes.find(eq(value,Integer.valueOf(number)));
-    MongoCursor<Clientes> cursor = iterable.iterator();
-    while (cursor.hasNext()) {
-      
-        list_clientes.add(cursor.next());
-                     
-    }  
-
-    List<Boletas> boletas= new ArrayList<Boletas>(cliente_actual.getBoletas());
-
-    for (int i = 0; i < list_clientes.size(); i++) {
-        Clientes cliente_actual = list_clientes.get(i);
-        
-
-        
-    }
-  
-    return list_clientes;  
-
-  }
-
+ 
   public Object[][] listToObject(List<Boletas> data_object_list){
 
     Object[][] table = new Object[data_object_list.size()][6];
