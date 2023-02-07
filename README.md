@@ -18,3 +18,10 @@ Este sistema de informacion fue hecho para la libreria BookStop en el lenguaje d
 - Visualizacion de los libros a traves de una tabla intuitiva
 - Ingreso de los datos del usuario(Rut)
 - Creacion de la venta del libro, y almacenamiento de la boleta tanto en la coleccion de Libros como en la de Clientes
+
+## Instrucciones
+
+Instalar dependencias de Maven
+```sh 
+mvn install
+```
